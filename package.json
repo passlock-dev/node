@@ -2,12 +2,13 @@
   "name": "@passlock/node",
   "type": "module",
   "version": "0.9.2",
-  "description": "Server side library offering passkey authentication",
+  "description": "Server side passkey library for node/express",
   "keywords": [
     "passkey",
     "passkeys",
     "webauthn",
-    "node"
+    "node",
+    "express"
   ],
   "author": {
     "name": "Toby Hobson",
@@ -21,7 +22,7 @@
     "email": "team@passlock.dev"
   },
   "scripts": {
-    "clean": "rm -r dist",
+    "clean": "tsc --build --clean",
     "build": "tsc --build",
     "test": "vitest run",
     "test:watch": "vitest dev",
