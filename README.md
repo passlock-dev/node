@@ -50,9 +50,9 @@ Passkeys and the WebAuthn API are quite complex. We've taken an opinionated appr
 Generate a secure token in your frontend then use this API to obtain the Passkey registration or authentication details:
 
 ```typescript
-import { PasslockSafe } from '@passlock/node'
+import { Passlock } from '@passlock/node'
 
-const passlock = new PasslockSafe({ tenancyId, apiKey })
+const passlock = new Passlock({ tenancyId, apiKey })
 
 // token comes from your frontend
 const principal = await passlock.fetchPrincipal({ token })
