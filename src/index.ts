@@ -1,6 +1,6 @@
 import { ErrorCode, InternalServerError, type Forbidden, type NotFound, type Unauthorized } from "@passlock/shared/dist/error/error.js";
 import { Effect as E, Layer as L, Runtime, Scope, pipe } from "effect";
-import { PrincipalService, PrincipalServiceLive, type PrincipalRequest } from "./principal/principal.js";
+import { PrincipalService, PrincipalServiceLive, type PrincipalRequest, ResponseStreamLive } from "./principal/principal.js";
 import { Config } from "./config/config.js";
 
 export type { PrincipalRequest } from './principal/principal.js'
@@ -88,8 +88,8 @@ export class PasslockUnsafe {
   private readonly runtime: Runtime.Runtime<Requirements>
 
   constructor(config: { tenancyId: string; apiKey: string; endpoint?: string }) {
-    const rpcConfig = L.succeed(Config, Config.of(config))
-    const allLayers = pipe(PrincipalServiceLive, L.provide(rpcConfig))
+    const configLive = L.succeed(Config, Config.of(config))
+    const allLayers = pipe(PrincipalServiceLive, L.provide(configLive), L.provide(ResponseStreamLive))
     const scope = E.runSync(Scope.make())
     this.runtime = E.runSync(L.toRuntime(allLayers).pipe(Scope.extend(scope)))
   }
@@ -116,8 +116,8 @@ export class Passlock {
   private readonly runtime: Runtime.Runtime<Requirements>
 
   constructor(config: { tenancyId: string; apiKey: string; endpoint?: string }) {
-    const rpcConfig = L.succeed(Config, Config.of(config))
-    const allLayers = pipe(PrincipalServiceLive, L.provide(rpcConfig))
+    const configLive = L.succeed(Config, Config.of(config))
+    const allLayers = pipe(PrincipalServiceLive, L.provide(configLive), L.provide(ResponseStreamLive))
     const scope = E.runSync(Scope.make())
     this.runtime = E.runSync(L.toRuntime(allLayers).pipe(Scope.extend(scope)))
   }

@@ -4,6 +4,13 @@ import { Chunk, Console, Context, Effect as E, Layer, Option, Stream, StreamEmit
 import * as https from "https"
 import { Config } from "../config/config.js"
 
+/* Dependencies */
+
+export type StreamResponse = (options: https.RequestOptions) => Stream.Stream<Buffer, PrincipalErrors>
+export const StreamResponse = Context.GenericTag<StreamResponse>("@services/ResponseStream")
+
+/* Service */
+
 const parsePrincipal = createParser(Principal)
 
 export type PrincipalErrors = NotFound | Unauthorized | Forbidden | InternalServerError
@@ -14,6 +21,8 @@ export type PrincipalService = {
 }
 
 export const PrincipalService = Context.GenericTag<PrincipalService>('@services/Principal')
+
+/* Effects */
 
 const buildOptions = (token: string) => pipe(
   Config, 
@@ -29,7 +38,7 @@ const buildOptions = (token: string) => pipe(
   }))
 )
 
-const buildError = (res: { statusCode?: number | undefined, statusMessage?: string | undefined }) => {
+export const buildError = (res: { statusCode?: number | undefined, statusMessage?: string | undefined }) => {
   if (res.statusCode === 404) return new NotFound({ message: "Invalid token" })
   if (res.statusCode === 401) return new Unauthorized({ message: 'Unauthorized' })
   if (res.statusCode === 403) return new Forbidden({ message: 'Forbidden' })
@@ -47,21 +56,11 @@ const close = E.fail(Option.none())
 
 const buildStream = (token: string) => pipe(
   Stream.fromEffect(buildOptions(token)),
-  Stream.flatMap(options => 
-    Stream.async((emit: StreamEmit.Emit<never, PrincipalErrors, Buffer, void>) => {
-      https.request(options, res => {
-        if (200 !== res.statusCode) emit(fail(buildError(res)))
-        res.on('data', data => emit(succeed(data)))
-        res.on('close', () => emit(close))
-        res.on('error', (e) => emit(
-          fail(new InternalServerError({ message: e.message }))
-        ))
-      }).end()
-    })
-  )
+  Stream.zip(StreamResponse),
+  Stream.flatMap(([options, streamResponse]) => streamResponse(options))
 )
 
-export const fetchPrincipal = (request: PrincipalRequest): E.Effect<Principal, PrincipalErrors, Config> => {
+export const fetchPrincipal = (request: PrincipalRequest): E.Effect<Principal, PrincipalErrors, StreamResponse | Config> => {
   const stream = buildStream(request.token)
 
   const json = pipe(
@@ -96,10 +95,26 @@ export const fetchPrincipal = (request: PrincipalRequest): E.Effect<Principal, P
 /* Live */
 
 /* v8 ignore start */
+export const ResponseStreamLive = Layer.succeed(
+  StreamResponse,
+  (options) => {
+    return Stream.async((emit: StreamEmit.Emit<never, PrincipalErrors, Buffer, void>) => {
+      https.request(options, res => {
+        if (200 !== res.statusCode) emit(fail(buildError(res)))
+        res.on('data', data => emit(succeed(data)))
+        res.on('close', () => emit(close))
+        res.on('error', (e) => emit(
+          fail(new InternalServerError({ message: e.message }))
+        ))
+      }).end()
+    })
+  }
+)
+
 export const PrincipalServiceLive = Layer.effect(
   PrincipalService,
   E.gen(function* (_) {
-    const context = yield* _(E.context<Config>())
+    const context = yield* _(E.context<Config | StreamResponse>())
     return PrincipalService.of({
       fetchPrincipal: flow(fetchPrincipal, E.provide(context)),
     })
