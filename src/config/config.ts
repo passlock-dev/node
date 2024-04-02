@@ -1,10 +1,10 @@
-import { Context } from "effect";
+import { Context } from 'effect'
 
-export class Config extends Context.Tag("Config")<
+export class Config extends Context.Tag('Config')<
   Config,
-  { 
-    readonly tenancyId: string, 
-    readonly apiKey: string, 
-    readonly endpoint?: string 
+  {
+    readonly tenancyId: string
+    readonly apiKey: string
+    readonly endpoint?: string
   }
 >() {}

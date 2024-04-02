@@ -1,14 +1,19 @@
-import { Forbidden, InternalServerError, NotFound, Unauthorized } from "@passlock/shared/dist/error/error.js"
-import { Effect as E, Effect, Ref } from "effect"
+import {
+  Forbidden,
+  InternalServerError,
+  NotFound,
+  Unauthorized,
+} from '@passlock/shared/dist/error/error.js'
+import { Effect as E, Effect, Ref } from 'effect'
 import { describe, expect, test } from 'vitest'
 import * as Fixture from './principal.fixture.js'
-import { PrincipalService } from "./principal.js"
+import { PrincipalService } from './principal.js'
 
 describe('fetchPrincipal should', () => {
   test('return a valid principal', () => {
     const assertions = E.gen(function* (_) {
       const service = yield* _(PrincipalService)
-      const result = yield* _(service.fetchPrincipal({ token: "token" }))
+      const result = yield* _(service.fetchPrincipal({ token: 'token' }))
 
       expect(result).toEqual(Fixture.principal)
     })
@@ -21,13 +26,13 @@ describe('fetchPrincipal should', () => {
   test('call the right url', () => {
     const assertions = E.gen(function* (_) {
       const service = yield* _(PrincipalService)
-      yield* _(service.fetchPrincipal({ token: "myToken" }))
-      
+      yield* _(service.fetchPrincipal({ token: 'myToken' }))
+
       const state = yield* _(Fixture.State)
       const args = yield* _(Ref.get(state))
-      
-      expect(args?.hostname).toEqual("https://api.passlock.dev")
-      expect(args?.method).toEqual("GET")
+
+      expect(args?.hostname).toEqual('https://api.passlock.dev')
+      expect(args?.method).toEqual('GET')
       expect(args?.path).toEqual(`/${Fixture.tenancyId}/token/myToken`)
     })
 
@@ -39,11 +44,11 @@ describe('fetchPrincipal should', () => {
   test('pass the api key as a header', () => {
     const assertions = E.gen(function* (_) {
       const service = yield* _(PrincipalService)
-      yield* _(service.fetchPrincipal({ token: "myToken" }))
-      
+      yield* _(service.fetchPrincipal({ token: 'myToken' }))
+
       const state = yield* _(Fixture.State)
       const args = yield* _(Ref.get(state))
-      
+
       expect(args?.headers?.['X-API-KEY']).toEqual(Fixture.apiKey)
     })
 
@@ -55,7 +60,7 @@ describe('fetchPrincipal should', () => {
   test('propagate a 401 error', () => {
     const assertions = E.gen(function* (_) {
       const service = yield* _(PrincipalService)
-      const result = service.fetchPrincipal({ token: "myToken" })
+      const result = service.fetchPrincipal({ token: 'myToken' })
       const error = yield* _(Effect.flip(result))
       expect(error).toBeInstanceOf(Unauthorized)
     })
@@ -68,7 +73,7 @@ describe('fetchPrincipal should', () => {
   test('propagate a 403 error', () => {
     const assertions = E.gen(function* (_) {
       const service = yield* _(PrincipalService)
-      const result = service.fetchPrincipal({ token: "myToken" })
+      const result = service.fetchPrincipal({ token: 'myToken' })
       const error = yield* _(Effect.flip(result))
       expect(error).toBeInstanceOf(Forbidden)
     })
@@ -81,7 +86,7 @@ describe('fetchPrincipal should', () => {
   test('propagate a 404 error', () => {
     const assertions = E.gen(function* (_) {
       const service = yield* _(PrincipalService)
-      const result = service.fetchPrincipal({ token: "myToken" })
+      const result = service.fetchPrincipal({ token: 'myToken' })
       const error = yield* _(Effect.flip(result))
       expect(error).toBeInstanceOf(NotFound)
     })
@@ -94,7 +99,7 @@ describe('fetchPrincipal should', () => {
   test('propagate a 500 error', () => {
     const assertions = E.gen(function* (_) {
       const service = yield* _(PrincipalService)
-      const result = service.fetchPrincipal({ token: "myToken" })
+      const result = service.fetchPrincipal({ token: 'myToken' })
       const error = yield* _(Effect.flip(result))
       expect(error).toBeInstanceOf(InternalServerError)
     })

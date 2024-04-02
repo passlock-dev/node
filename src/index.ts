@@ -1,11 +1,22 @@
-import { ErrorCode, InternalServerError, type Forbidden, type NotFound, type Unauthorized } from "@passlock/shared/dist/error/error.js";
-import { Effect as E, Layer as L, Runtime, Scope, pipe } from "effect";
-import { PrincipalService, PrincipalServiceLive, type PrincipalRequest, ResponseStreamLive } from "./principal/principal.js";
-import { Config } from "./config/config.js";
+import type {
+  ErrorCode,
+  type Forbidden,
+  InternalServerError,
+  type NotFound,
+  type Unauthorized,
+} from '@passlock/shared/dist/error/error.js'
+import { Effect as E, Layer as L, Runtime, Scope, pipe } from 'effect'
+import { Config } from './config/config.js'
+import {
+  type PrincipalRequest,
+  PrincipalService,
+  PrincipalServiceLive,
+  ResponseStreamLive,
+} from './principal/principal.js'
 
 export type { PrincipalRequest } from './principal/principal.js'
 
-export { ErrorCode } from '@passlock/shared/dist/error/error.js';
+export { ErrorCode } from '@passlock/shared/dist/error/error.js'
 
 export class PasslockError extends Error {
   readonly _tag = 'PasslockError'
@@ -26,11 +37,7 @@ export class PasslockError extends Error {
   }
 }
 
-type PasslockErrors =
-  | NotFound
-  | Unauthorized
-  | Forbidden
-  | InternalServerError
+type PasslockErrors = NotFound | Unauthorized | Forbidden | InternalServerError
 
 const hasMessage = (defect: unknown): defect is { message: string } => {
   return (
@@ -48,7 +55,8 @@ const transformErrors = <A, R>(
     NotFound: e => E.succeed(new PasslockError(e.message, ErrorCode.NotFound)),
     Unauthorized: e => E.succeed(new PasslockError(e.message, ErrorCode.Unauthorized)),
     Forbidden: e => E.succeed(new PasslockError(e.message, ErrorCode.Forbidden)),
-    InternalServerError: e => E.succeed(new PasslockError(e.message, ErrorCode.InternalServerError)),
+    InternalServerError: e =>
+      E.succeed(new PasslockError(e.message, ErrorCode.InternalServerError)),
   })
 
   const sandboxed = E.sandbox(withErrorHandling)
@@ -89,7 +97,11 @@ export class PasslockUnsafe {
 
   constructor(config: { tenancyId: string; apiKey: string; endpoint?: string }) {
     const configLive = L.succeed(Config, Config.of(config))
-    const allLayers = pipe(PrincipalServiceLive, L.provide(configLive), L.provide(ResponseStreamLive))
+    const allLayers = pipe(
+      PrincipalServiceLive,
+      L.provide(configLive),
+      L.provide(ResponseStreamLive),
+    )
     const scope = E.runSync(Scope.make())
     this.runtime = E.runSync(L.toRuntime(allLayers).pipe(Scope.extend(scope)))
   }
@@ -117,7 +129,11 @@ export class Passlock {
 
   constructor(config: { tenancyId: string; apiKey: string; endpoint?: string }) {
     const configLive = L.succeed(Config, Config.of(config))
-    const allLayers = pipe(PrincipalServiceLive, L.provide(configLive), L.provide(ResponseStreamLive))
+    const allLayers = pipe(
+      PrincipalServiceLive,
+      L.provide(configLive),
+      L.provide(ResponseStreamLive),
+    )
     const scope = E.runSync(Scope.make())
     this.runtime = E.runSync(L.toRuntime(allLayers).pipe(Scope.extend(scope)))
   }
@@ -125,10 +141,7 @@ export class Passlock {
   private readonly runPromise = <A, R extends Requirements>(
     effect: E.Effect<A, PasslockErrors, R>,
   ) => {
-    return pipe(
-      transformErrors(effect), 
-      effect => Runtime.runPromise(this.runtime)(effect)
-    )
+    return pipe(transformErrors(effect), effect => Runtime.runPromise(this.runtime)(effect))
   }
 
   fetchPrincipal = (request: PrincipalRequest) =>
