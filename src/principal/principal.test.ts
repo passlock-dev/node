@@ -31,7 +31,7 @@ describe('fetchPrincipal should', () => {
       const state = yield* _(Fixture.State)
       const args = yield* _(Ref.get(state))
 
-      expect(args?.hostname).toEqual('https://api.passlock.dev')
+      expect(args?.hostname).toEqual('api.passlock.dev')
       expect(args?.method).toEqual('GET')
       expect(args?.path).toEqual(`/${Fixture.tenancyId}/token/myToken`)
     })

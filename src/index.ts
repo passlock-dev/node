@@ -1,9 +1,9 @@
-import type {
+import {
   ErrorCode,
-  type Forbidden,
+  Forbidden,
   InternalServerError,
-  type NotFound,
-  type Unauthorized,
+  NotFound,
+  Unauthorized,
 } from '@passlock/shared/dist/error/error.js'
 import { Effect as E, Layer as L, Runtime, Scope, pipe } from 'effect'
 import { Config } from './config/config.js'
@@ -11,7 +11,7 @@ import {
   type PrincipalRequest,
   PrincipalService,
   PrincipalServiceLive,
-  ResponseStreamLive,
+  StreamResponseLive,
 } from './principal/principal.js'
 
 export type { PrincipalRequest } from './principal/principal.js'
@@ -100,7 +100,7 @@ export class PasslockUnsafe {
     const allLayers = pipe(
       PrincipalServiceLive,
       L.provide(configLive),
-      L.provide(ResponseStreamLive),
+      L.provide(StreamResponseLive),
     )
     const scope = E.runSync(Scope.make())
     this.runtime = E.runSync(L.toRuntime(allLayers).pipe(Scope.extend(scope)))
@@ -132,7 +132,7 @@ export class Passlock {
     const allLayers = pipe(
       PrincipalServiceLive,
       L.provide(configLive),
-      L.provide(ResponseStreamLive),
+      L.provide(StreamResponseLive),
     )
     const scope = E.runSync(Scope.make())
     this.runtime = E.runSync(L.toRuntime(allLayers).pipe(Scope.extend(scope)))

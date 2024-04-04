@@ -1,4 +1,3 @@
-import * as https from 'https'
 import {
   Forbidden,
   InternalServerError,
@@ -8,6 +7,7 @@ import {
 import { Principal, createParser } from '@passlock/shared/dist/schema/schema.js'
 import type { StreamEmit } from 'effect'
 import { Chunk, Console, Context, Effect as E, Layer, Option, Stream, flow, pipe } from 'effect'
+import * as https from 'https'
 import { Config } from '../config/config.js'
 
 /* Dependencies */
@@ -32,11 +32,15 @@ export const PrincipalService = Context.GenericTag<PrincipalService>('@services/
 
 /* Effects */
 
+const buildHostname = (endpoint: string | undefined) => { 
+  return new URL(endpoint || 'https://api.passlock.dev').hostname 
+}
+
 const buildOptions = (token: string) =>
   pipe(
     Config,
     E.map(({ endpoint, tenancyId, apiKey }) => ({
-      hostname: endpoint || 'https://api.passlock.dev',
+      hostname: buildHostname(endpoint),
       port: 443,
       path: `/${tenancyId}/token/${token}`,
       method: 'GET',
@@ -57,8 +61,10 @@ export const buildError = (res: {
 
   if (res.statusCode && res.statusMessage)
     return new InternalServerError({ message: `${String(res.statusCode)} - ${res.statusMessage}` })
-  if (res.statusCode) return new InternalServerError({ message: String(res.statusCode) })
-  if (res.statusMessage) return new InternalServerError({ message: res.statusMessage })
+  
+    if (res.statusCode) return new InternalServerError({ message: String(res.statusCode) })
+  
+    if (res.statusMessage) return new InternalServerError({ message: res.statusMessage })
 
   return new InternalServerError({ message: 'Received non 200 response' })
 }
@@ -103,7 +109,6 @@ export const fetchPrincipal = (
           }),
       }),
     ),
-    E.tap(json => Console.log(json)),
     E.flatMap(json =>
       pipe(
         parsePrincipal(json),
@@ -121,7 +126,7 @@ export const fetchPrincipal = (
 /* Live */
 
 /* v8 ignore start */
-export const ResponseStreamLive = Layer.succeed(StreamResponse, options => {
+export const StreamResponseLive = Layer.succeed(StreamResponse, options => {
   return Stream.async((emit: StreamEmit.Emit<never, PrincipalErrors, Buffer, void>) => {
     https
       .request(options, res => {
