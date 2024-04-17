@@ -24,6 +24,7 @@
   "scripts": {
     "clean": "tsc --build --clean",
     "build": "tsc --build",
+    "build:clean": "pnpm run clean && pnpm run build",
     "test": "vitest run",
     "test:watch": "vitest dev",
     "test:ui": "vitest --coverage.enabled=true --ui",
@@ -33,11 +34,11 @@
     "lint:fix": "pnpm run lint --fix",
     "format": "prettier --write \"src/**/*.+(js|ts|json)\"",
     "ncu": "ncu -x @passlock/shared",
-    "ncu:save": "ncu -u -x @passlock/shared"
+    "ncu:save": "ncu -u -x @passlock/shared -x eslint"
   },
   "dependencies": {
     "@passlock/shared": "workspace:^",
-    "effect": "2.4.19"
+    "effect": "3.0.0"
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.4",
