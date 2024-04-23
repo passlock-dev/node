@@ -49,7 +49,7 @@ describe('fetchPrincipal should', () => {
       const state = yield* _(Fixture.State)
       const args = yield* _(Ref.get(state))
 
-      expect(args?.headers?.['X-API-KEY']).toEqual(Fixture.apiKey)
+      expect(args?.headers?.['Authorization']).toEqual(`Bearer ${Fixture.apiKey}`)
     })
 
     const effect = Fixture.buildEffect(assertions)

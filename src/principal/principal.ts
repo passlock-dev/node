@@ -46,7 +46,7 @@ const buildOptions = (token: string) =>
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'X-API-KEY': apiKey,
+        'Authorization': `Bearer ${apiKey}`,
       },
     })),
   )
