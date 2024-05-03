@@ -23,7 +23,7 @@ describe('fetchPrincipal should', () => {
     return E.runPromise(effect)
   })
 
-  test('call the right url', () => {
+  test('call the correct url', () => {
     const assertions = E.gen(function* (_) {
       const service = yield* _(PrincipalService)
       yield* _(service.fetchPrincipal({ token: 'myToken' }))
