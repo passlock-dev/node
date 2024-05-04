@@ -1,8 +1,8 @@
 import {
-  Forbidden,
-  InternalServerError,
-  NotFound,
-  Unauthorized,
+    Forbidden,
+    InternalServerError,
+    NotFound,
+    Unauthorized,
 } from '@passlock/shared/dist/error/error.js'
 import { Principal, createParser } from '@passlock/shared/dist/schema/schema.js'
 import type { StreamEmit } from 'effect'
